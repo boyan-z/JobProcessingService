@@ -4,6 +4,7 @@ import com.bdz.procservice.converter.TaskToTextConvertor;
 import com.bdz.procservice.dto.TaskResponseDTO;
 import com.bdz.procservice.dto.TasksRequestDTO;
 import com.bdz.procservice.mapper.TaskRequestToTaskModelMapper;
+import com.bdz.procservice.model.TaskModel;
 import com.bdz.procservice.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -34,8 +35,7 @@ public class TaskController {
     @PostMapping(path = "/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<TaskResponseDTO> tasksSort(@RequestBody final TasksRequestDTO tasksRequest) {
-        // Map requested tasks to TaskModel
-        var sourceTasks = tasksRequest.getTasks().stream().map(taskRequestToTaskModelMapper::sourceToDestination).collect(Collectors.toList());
+        List<TaskModel> sourceTasks = convertRequestToTaskModels(tasksRequest);
         // Do the sort
         var sortedTasks = taskService.sortTasks(sourceTasks);
         // Map to response
@@ -51,10 +51,15 @@ public class TaskController {
     @PostMapping(path = "/tasks", produces = MediaType.TEXT_PLAIN_VALUE)
     public String tasksSortPlainText(@RequestBody final TasksRequestDTO tasksRequest) {
         // Map requested tasks to TaskModel
-        var sourceTasks = tasksRequest.getTasks().stream().map(taskRequestToTaskModelMapper::sourceToDestination).collect(Collectors.toList());
+        List<TaskModel> sourceTasks = convertRequestToTaskModels(tasksRequest);
         // Do the sort
         var sortedTasks = taskService.sortTasks(sourceTasks);
         // Map to text
         return TaskToTextConvertor.convertAll(sortedTasks);
+    }
+
+    private List<TaskModel> convertRequestToTaskModels(@RequestBody TasksRequestDTO tasksRequest) {
+        // Map requested tasks to TaskModel
+        return tasksRequest.getTasks().stream().map(taskRequestToTaskModelMapper::sourceToDestination).collect(Collectors.toList());
     }
 }
